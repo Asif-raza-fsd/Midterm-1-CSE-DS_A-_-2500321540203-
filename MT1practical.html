@@ -1,0 +1,179 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Library Management System</title>
+
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial;
+            background: lightgray;
+        }
+
+        h1 {
+            color: darkblue;
+        }
+
+        input, button {
+            padding: 10px;
+            margin: 5px;
+        }
+
+        button {
+            background: blue;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        table {
+            margin: 20px auto;
+            width: 80%;
+            background: white;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid black;
+        }
+
+        th {
+            background: lightblue;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Student Library Management System</h1>
+
+    <h3>Add / Update Book</h3>
+
+    <input id="id" placeholder="Book ID">
+    <input id="author" placeholder="Author">
+    <input id="title" placeholder="Title">
+    <input id="category" placeholder="Category">
+
+    <br>
+
+    <button onclick="addBook()">POST - Add</button>
+    <button onclick="updateBook()">PUT - Update</button>
+    <button onclick="getAll()">GET ALL</button>
+
+    <h3>Search / Delete Book</h3>
+
+    <input id="search" placeholder="Enter Book ID">
+
+    <button onclick="getById()">GET BY ID</button>
+    <button onclick="deleteBook()">DELETE</button>
+
+    <h3>Book List</h3>
+
+    <table>
+        <tr>
+            <th>Book ID</th>
+            <th>Author</th>
+            <th>Title</th>
+            <th>Category</th>
+        </tr>
+
+        <tbody id="result"></tbody>
+    </table>
+
+    <script>
+
+        async function getAll() {
+            let res = await fetch("/books");
+            let data = await res.json();
+            showBooks(data);
+        }
+
+        function showBooks(data) {
+            let output = "";
+
+            data.forEach(book => {
+                output += `
+                    <tr>
+                        <td>${book.id}</td>
+                        <td>${book.author}</td>
+                        <td>${book.title}</td>
+                        <td>${book.category}</td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById("result").innerHTML = output;
+        }
+
+        async function addBook() {
+            let book = {
+                id: Number(document.getElementById("id").value),
+                author: document.getElementById("author").value,
+                title: document.getElementById("title").value,
+                category: document.getElementById("category").value
+            };
+
+            let res = await fetch("/books", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(book)
+            });
+
+            let data = await res.json();
+            alert(data.message);
+            getAll();
+        }
+
+        async function getById() {
+            let id = document.getElementById("search").value;
+
+            let res = await fetch("/books/" + id);
+            let data = await res.json();
+
+            if (data.id) {
+                showBooks([data]);
+            } else {
+                alert("Book not found");
+            }
+        }
+
+        async function updateBook() {
+            let id = document.getElementById("id").value;
+
+            let book = {
+                author: document.getElementById("author").value,
+                title: document.getElementById("title").value,
+                category: document.getElementById("category").value
+            };
+
+            let res = await fetch("/books/" + id, {
+                method: "PUT",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(book)
+            });
+
+            let data = await res.json();
+            alert(data.message);
+            getAll();
+        }
+
+        async function deleteBook() {
+            let id = document.getElementById("search").value;
+
+            let res = await fetch("/books/" + id, {
+                method: "DELETE"
+            });
+
+            let data = await res.json();
+            alert(data.message);
+            getAll();
+        }
+
+        getAll();
+
+    </script>
+
+</body>
+</html>
